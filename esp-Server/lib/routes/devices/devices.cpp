@@ -43,9 +43,11 @@ void registerDeviceRoutes(ESPExpress &app) {
       }
       json += "\"direction\":\"" + dirStr + "\"";
       json += "}";
-      if (i < devices.size() - 1) json += ",";
+      if (i < devices.size() - 1)
+        json += ",";
     }
     json += "]";
+    Serial.println("[DEBUG] GET /api/devices response JSON: " + json);
     res.sendJson(json);
   });
 
@@ -55,6 +57,8 @@ void registerDeviceRoutes(ESPExpress &app) {
   // { "id": "lamp", "type": "actuator", "pins": [2,3], "interfaceType": "pwm", "direction": "output" }
   app.post("/api/device", [](Request &req, Response &res) {
     String body = req.body;
+    Serial.println("[DEBUG] POST /api/device received body: " + body);
+    
     int idStart = body.indexOf("\"id\":\"") + 6;
     int idEnd   = body.indexOf("\"", idStart);
     int typeStart = body.indexOf("\"type\":\"") + 8;
@@ -62,6 +66,7 @@ void registerDeviceRoutes(ESPExpress &app) {
     
     if (idStart < 6 || typeStart < 8) {
       res.status(400).send("Invalid JSON format");
+      Serial.println("[DEBUG] POST /api/device - Invalid JSON format");
       return;
     }
     
@@ -77,7 +82,7 @@ void registerDeviceRoutes(ESPExpress &app) {
       int bracketEnd   = body.indexOf(']', bracketStart);
       if (bracketStart != -1 && bracketEnd != -1) {
         String pinsSubstr = body.substring(bracketStart + 1, bracketEnd);
-        d.pins = parsePins(pinsSubstr);  // Using helper from ESPControlPlatform library
+        d.pins = parsePins(pinsSubstr);
       }
     } else {
       int pinStart = body.indexOf("\"pin\":") + 6;
@@ -94,7 +99,7 @@ void registerDeviceRoutes(ESPExpress &app) {
       int intfStart = intfIndex + strlen("\"interfaceType\":\"");
       int intfEnd   = body.indexOf("\"", intfStart);
       String interfaceStr = body.substring(intfStart, intfEnd);
-      d.interface = parseInterfaceType(interfaceStr);  // From the library
+      d.interface = parseInterfaceType(interfaceStr);
     } else {
       d.interface = DIGITAL_IF; // Default
     }
@@ -105,12 +110,46 @@ void registerDeviceRoutes(ESPExpress &app) {
       int dirStart = dirIndex + strlen("\"direction\":\"");
       int dirEnd   = body.indexOf("\"", dirStart);
       String directionStr = body.substring(dirStart, dirEnd);
-      d.direction = parseDeviceDirection(directionStr);  // From the library
+      d.direction = parseDeviceDirection(directionStr);
     } else {
       d.direction = UNKNOWN_DIRECTION;
     }
     
     devices.push_back(d);
+    
+    // Debug: Print the device details as JSON for verification
+    String debugJson = "{";
+    debugJson += "\"id\":\"" + d.id + "\",";
+    debugJson += "\"type\":\"" + d.type + "\",";
+    debugJson += "\"state\":\"" + d.state + "\",";
+    debugJson += "\"pins\":[";
+    for (size_t i = 0; i < d.pins.size(); i++) {
+      debugJson += String(d.pins[i]);
+      if (i < d.pins.size() - 1)
+        debugJson += ",";
+    }
+    debugJson += "],";
+    String interfaceStr;
+    switch (d.interface) {
+      case DIGITAL_IF: interfaceStr = "digital"; break;
+      case ANALOG_IF:  interfaceStr = "analog"; break;
+      case PWM_IF:     interfaceStr = "pwm"; break;
+      case I2C_IF:     interfaceStr = "i2c"; break;
+      case SPI_IF:     interfaceStr = "spi"; break;
+      default:         interfaceStr = "unknown";
+    }
+    debugJson += "\"interfaceType\":\"" + interfaceStr + "\",";
+    String dirStr;
+    switch (d.direction) {
+      case INPUT_DEVICE:      dirStr = "input"; break;
+      case OUTPUT_DEVICE:     dirStr = "output"; break;
+      case BIDIRECTIONAL:     dirStr = "bidirectional"; break;
+      default:                dirStr = "unknown";
+    }
+    debugJson += "\"direction\":\"" + dirStr + "\"";
+    debugJson += "}";
+    Serial.println("[DEBUG] Adding Device: " + debugJson);
+    
     res.send("Device added");
   });
 
@@ -118,6 +157,7 @@ void registerDeviceRoutes(ESPExpress &app) {
   // Expects the new state in the request body (plain text)
   app.put("/api/device/:id", [](Request &req, Response &res) {
     String deviceId = req.getParam("id");
+    Serial.println("[DEBUG] PUT /api/device/" + deviceId + " with new state: " + req.body);
     bool found = false;
     for (auto &d : devices) {
       if (d.id == deviceId) {
@@ -126,9 +166,13 @@ void registerDeviceRoutes(ESPExpress &app) {
         break;
       }
     }
-    if (found)
+    if (found) {
       res.send("Device updated");
-    else
+      Serial.println("[DEBUG] Device " + deviceId + " updated successfully");
+    }
+    else {
       res.status(404).send("Device not found");
+      Serial.println("[DEBUG] Device " + deviceId + " not found");
+    }
   });
 }

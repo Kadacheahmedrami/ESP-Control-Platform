@@ -6,8 +6,8 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ESP32 Device Manager",
-  description: "A web interface to manage ESP32 devices",
+  title: "ESP32 IoT Control Panel",
+  description: "A modern control panel for ESP32 IoT devices",
     generator: 'v0.dev'
 }
 
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>{children}</body>
     </html>
   )
