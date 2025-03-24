@@ -66,13 +66,13 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
         <ThemeToggle />
       </div>
 
-      <Card className="border-2 shadow-lg">
+      <Card className="border-2 shadow-lg glass-effect">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-6">
-            <Server className="h-12 w-12 text-primary" />
+            <Server className="h-16 w-16 text-primary" />
           </div>
-          <CardTitle className="text-2xl text-center">ESP32 IoT Control Panel</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-3xl text-center">ESP32 IoT Control Panel</CardTitle>
+          <CardDescription className="text-center text-base">
             Connect to your ESP32 device to monitor and control your IoT devices
           </CardDescription>
         </CardHeader>
@@ -87,9 +87,9 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
                     value={ipAddress}
                     onChange={(e) => setIpAddress(e.target.value)}
                     disabled={isValidating}
-                    className="pl-10"
+                    className="pl-10 h-12 text-lg"
                   />
-                  <Wifi className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Wifi className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
                 <p className="text-xs text-muted-foreground">Note: The WebSocket server runs on port 81</p>
               </div>
@@ -104,11 +104,11 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
           </form>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" onClick={handleSubmit} disabled={isValidating}>
+          <Button type="submit" className="w-full h-12 text-lg" onClick={handleSubmit} disabled={isValidating}>
             {isValidating ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

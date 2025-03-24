@@ -1,6 +1,6 @@
 #include "devices.h"
 #include "ESPControlPlatform.h"  // For access to global 'devices' and helper functions
-
+#include "device_controller.h"
 void registerDeviceRoutes(ESPExpress &app) {
   // GET /api/devices - List all devices
   app.get("/api/devices", [](Request &req, Response &res) {
@@ -153,26 +153,44 @@ void registerDeviceRoutes(ESPExpress &app) {
     res.send("Device added");
   });
 
+
+
+  // PUT /api/device/:id - Update device state
+  // Expects the new state in the request body (plain text)
+
   // PUT /api/device/:id - Update device state
   // Expects the new state in the request body (plain text)
   app.put("/api/device/:id", [](Request &req, Response &res) {
     String deviceId = req.getParam("id");
-    Serial.println("[DEBUG] PUT /api/device/" + deviceId + " with new state: " + req.body);
+    String newState = req.body;
+    Serial.println("[DEBUG] PUT /api/device/" + deviceId + " with new state: " + newState);
+    
     bool found = false;
+    bool updateSuccess = false;
+    Serial.println("serial works ??");
     for (auto &d : devices) {
       if (d.id == deviceId) {
-        d.state = req.body;
         found = true;
+        
+        updateSuccess = updateDeviceState(d, newState);
+   
+
         break;
       }
     }
-    if (found) {
+
+    if (found && updateSuccess) {
       res.send("Device updated");
-      Serial.println("[DEBUG] Device " + deviceId + " updated successfully");
+      Serial.println("[DEBUG] Device " + deviceId + " updated successfully with state: " + newState);
     }
-    else {
+    else if (!found) {
       res.status(404).send("Device not found");
       Serial.println("[DEBUG] Device " + deviceId + " not found");
     }
+    else {
+      res.status(400).send("Invalid state update");
+      Serial.println("[DEBUG] Failed to update device " + deviceId + " state");
+    }
   });
+
 }

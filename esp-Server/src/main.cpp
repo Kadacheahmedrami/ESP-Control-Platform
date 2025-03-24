@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include <WiFi.h>
 #include <SPIFFS.h>
 #include "ESPExpress.h"
@@ -13,7 +14,9 @@ const char* password = "78787878";
 ESPExpress app(80);
 
 void setup() {
+
   Serial.begin(115200);
+
   delay(1000);
 
   // Connect to WiFi

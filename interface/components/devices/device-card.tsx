@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { DeviceType } from "@/types/device-types"
-import { Settings, Maximize2 } from "lucide-react"
+import { Settings, Maximize2, Cpu } from "lucide-react"
 import { DeviceControls } from "@/components/devices/device-controls"
 import { DeviceIcon } from "@/components/devices/device-icon"
 import { DeviceDetailsDialog } from "@/components/devices/device-details-dialog"
 import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface DeviceCardProps {
   device: DeviceType
@@ -40,8 +41,14 @@ export function DeviceCard({ device, onUpdateState, ipAddress }: DeviceCardProps
   }
 
   return (
-    <>
-      <Card className={cn("device-card border-2 h-[500px] flex flex-col", isUpdating ? "opacity-80" : "")}>
+    <TooltipProvider>
+      <Card
+        className={cn(
+          "device-card border-2 h-[500px] flex flex-col transition-all duration-300 hover:shadow-lg",
+          isUpdating ? "opacity-80" : "",
+          device.state === "on" || device.state === "1" || device.state === "true" ? "border-green-500/50" : "",
+        )}
+      >
         <CardHeader className="pb-2 flex-shrink-0">
           <div className="flex justify-between items-start">
             <div className="flex items-center space-x-2">
@@ -54,11 +61,32 @@ export function DeviceCard({ device, onUpdateState, ipAddress }: DeviceCardProps
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className={`h-3 w-3 rounded-full ${getStatusColor()}`} />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={`h-3 w-3 rounded-full ${getStatusColor()}`} />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>State: {device.state}</p>
+                </TooltipContent>
+              </Tooltip>
               <Badge variant="outline">{device.interfaceType}</Badge>
             </div>
           </div>
+
+          {/* Pin information */}
+          <div className="mt-2 flex items-center text-xs text-muted-foreground">
+            <Cpu className="h-3 w-3 mr-1" />
+            <span>Pins:</span>
+            <div className="flex flex-wrap gap-1 ml-1">
+              {device.pins.map((pin) => (
+                <Badge key={pin} variant="secondary" className="text-xs px-1.5 py-0">
+                  {pin}
+                </Badge>
+              ))}
+            </div>
+          </div>
         </CardHeader>
+
         <CardContent className="flex-1 overflow-hidden p-0">
           <ScrollArea className="h-full px-6">
             <div className="py-2">
@@ -71,7 +99,8 @@ export function DeviceCard({ device, onUpdateState, ipAddress }: DeviceCardProps
             </div>
           </ScrollArea>
         </CardContent>
-        <CardFooter className="flex justify-between pt-2 mt-auto flex-shrink-0">
+
+        <CardFooter className="flex justify-between pt-2 mt-auto flex-shrink-0 border-t bg-muted/30">
           <Button variant="ghost" size="sm" onClick={() => setShowDetails(true)}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
@@ -90,7 +119,7 @@ export function DeviceCard({ device, onUpdateState, ipAddress }: DeviceCardProps
         onUpdateState={handleUpdateState}
         ipAddress={ipAddress}
       />
-    </>
+    </TooltipProvider>
   )
 }
 

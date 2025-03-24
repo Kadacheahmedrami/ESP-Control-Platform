@@ -59,10 +59,21 @@ class ApiService {
   }
 
   // Add a new device to the ESP32 - FIXED to match ESP32's expected format
-  async addDevice(ipAddress: string, device: Omit<DeviceType, "id">): Promise<void> {
+  async addDevice(
+    ipAddress: string,
+    device: Omit<DeviceType, "id">,
+    existingDevices: DeviceType[] = [],
+  ): Promise<void> {
     try {
-      // Generate a unique ID for the device based on type and timestamp
-      const deviceId = `${device.type}_${Date.now()}`
+      // Generate a simple sequential name based on device type
+      const deviceType = device.type.toLowerCase()
+
+      // Count existing devices of the same type
+      const sameTypeDevices = existingDevices.filter((d) => d.type.toLowerCase() === deviceType)
+
+      // Create a simple name: type + next number
+      const nextNumber = sameTypeDevices.length + 1
+      const deviceId = `${deviceType}${nextNumber}`
 
       // Format JSON exactly as the ESP32 expects
       let jsonBody: string

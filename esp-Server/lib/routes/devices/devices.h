@@ -3,7 +3,6 @@
 
 #include "ESPExpress.h"
 
-// Function to register device-related routes.
 void registerDeviceRoutes(ESPExpress &app);
 
 #endif // DEVICES_ROUTES_H

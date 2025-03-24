@@ -261,7 +261,12 @@ export function AddDeviceForm({ onAddDevice }: AddDeviceFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="device-id">Device ID</Label>
-                    <Input id="device-id" name="id" placeholder={`${formData.type}_${Date.now()}`} disabled />
+                    <Input
+                      id="device-id"
+                      name="id"
+                      placeholder={`Will be auto-generated (e.g., ${formData.type}1)`}
+                      disabled
+                    />
                     <p className="text-xs text-muted-foreground">ID will be auto-generated</p>
                   </div>
 

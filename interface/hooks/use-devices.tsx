@@ -41,7 +41,8 @@ export function useDevices(ipAddress: string) {
       setError(null)
 
       try {
-        await apiService.addDevice(ipAddress, device)
+        // Pass the current devices list to generate sequential IDs
+        await apiService.addDevice(ipAddress, device, devices)
         toast({
           title: "Device Added",
           description: "New device has been added successfully",
@@ -61,7 +62,7 @@ export function useDevices(ipAddress: string) {
         throw err
       }
     },
-    [ipAddress, fetchDevices, toast],
+    [ipAddress, fetchDevices, toast, devices],
   )
 
   // Function to update a device's state
