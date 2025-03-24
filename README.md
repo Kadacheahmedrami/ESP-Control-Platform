@@ -1,3 +1,3 @@
 # ESP-Control-Platform
 
-![Image](https://github.com/user-attachments/assets/2712dd72-aed7-423f-b234-12eba1e96746)
+![Image](https://github.com/user-attachments/assets/65a8260e-330d-42d7-bc1d-ee9288a6775a)
