@@ -447,7 +447,7 @@ function LedStripControls({ device, onUpdateState, isUpdating }: Omit<DeviceCont
 
           {showColorPicker && (
             <div className="mt-1">
-              <HexColorPicker color={color} onChange={setColor} />
+              <HexColorPicker color={color} onChange={setColor} height={100} width="100%" />
             </div>
           )}
         </div>

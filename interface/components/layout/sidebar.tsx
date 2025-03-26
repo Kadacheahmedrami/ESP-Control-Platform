@@ -19,6 +19,8 @@ interface SidebarProps {
   wsConnected: boolean
   wsMessages: string[]
   onSendMessage: (message: string) => boolean
+  wsEnabled: boolean
+  onToggleWebSocket: () => void
 }
 
 export function Sidebar({
@@ -30,6 +32,8 @@ export function Sidebar({
   wsConnected,
   wsMessages,
   onSendMessage,
+  wsEnabled,
+  onToggleWebSocket,
 }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -87,12 +91,19 @@ export function Sidebar({
               <WebSocketLog
                 messages={wsMessages}
                 connected={wsConnected}
+                enabled={wsEnabled}
                 onSendMessage={onSendMessage}
+                onToggle={onToggleWebSocket}
                 compact={true}
               />
             ) : (
               <div className="flex items-center justify-center h-full">
-                <div className={cn("h-3 w-3 rounded-full", wsConnected ? "bg-green-500" : "bg-red-500")} />
+                <div
+                  className={cn(
+                    "h-3 w-3 rounded-full",
+                    !wsEnabled ? "bg-gray-400" : wsConnected ? "bg-green-500" : "bg-red-500",
+                  )}
+                />
               </div>
             )}
           </TabsContent>
@@ -141,7 +152,14 @@ export function Sidebar({
           </TabsContent>
 
           <TabsContent value="websocket" className="flex-1 p-0">
-            <WebSocketLog messages={wsMessages} connected={wsConnected} onSendMessage={onSendMessage} compact={true} />
+            <WebSocketLog
+              messages={wsMessages}
+              connected={wsConnected}
+              enabled={wsEnabled}
+              onSendMessage={onSendMessage}
+              onToggle={onToggleWebSocket}
+              compact={true}
+            />
           </TabsContent>
         </Tabs>
       </SheetContent>

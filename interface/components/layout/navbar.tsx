@@ -3,21 +3,32 @@
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { Badge } from "@/components/ui/badge"
-import { Menu, RefreshCw, Wifi, WifiOff, LogOut, Info } from "lucide-react"
+import { Menu, RefreshCw, Wifi, WifiOff, LogOut, Info, Power } from "lucide-react"
 import { motion } from "framer-motion"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
 
 interface NavbarProps {
   ipAddress: string
   onDisconnect: () => void
   onToggleSidebar: () => void
   wsConnected: boolean
+  wsEnabled: boolean
+  onToggleWebSocket: () => void
   onRefresh: () => void
 }
 
-export function Navbar({ ipAddress, onDisconnect, onToggleSidebar, wsConnected, onRefresh }: NavbarProps) {
+export function Navbar({
+  ipAddress,
+  onDisconnect,
+  onToggleSidebar,
+  wsConnected,
+  wsEnabled,
+  onToggleWebSocket,
+  onRefresh,
+}: NavbarProps) {
   const [showInfo, setShowInfo] = useState(false)
 
   return (
@@ -38,31 +49,49 @@ export function Navbar({ ipAddress, onDisconnect, onToggleSidebar, wsConnected, 
 
           <div className="ml-auto flex items-center space-x-2">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center mr-2">
-              {wsConnected ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="flex items-center gap-1 bg-green-500/10">
-                      <Wifi className="h-3 w-3 text-green-500" />
-                      <span className="text-green-500">Connected</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>WebSocket connected on port 81</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="flex items-center gap-1 bg-red-500/10">
-                      <WifiOff className="h-3 w-3 text-red-500" />
-                      <span className="text-red-500">Disconnected</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>WebSocket disconnected</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+              <div className="flex items-center gap-2">
+                <Switch id="ws-toggle-nav" checked={wsEnabled} onCheckedChange={onToggleWebSocket} className="mr-1" />
+
+                {wsEnabled ? (
+                  wsConnected ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="flex items-center gap-1 bg-green-500/10">
+                          <Wifi className="h-3 w-3 text-green-500" />
+                          <span className="text-green-500">Connected</span>
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>WebSocket connected on port 81</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="flex items-center gap-1 bg-amber-500/10">
+                          <WifiOff className="h-3 w-3 text-amber-500" />
+                          <span className="text-amber-500">Connecting...</span>
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Attempting to connect to WebSocket</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="flex items-center gap-1 bg-gray-500/10">
+                        <Power className="h-3 w-3 text-gray-500" />
+                        <span className="text-gray-500">Disabled</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>WebSocket connection is disabled</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
             </motion.div>
 
             <Tooltip>
@@ -118,7 +147,9 @@ export function Navbar({ ipAddress, onDisconnect, onToggleSidebar, wsConnected, 
               </div>
               <div>
                 <h4 className="font-medium">WebSocket Status:</h4>
-                <p className="text-muted-foreground">{wsConnected ? "Connected (Port 81)" : "Disconnected"}</p>
+                <p className="text-muted-foreground">
+                  {!wsEnabled ? "Disabled" : wsConnected ? "Connected (Port 81)" : "Attempting to connect..."}
+                </p>
               </div>
               <div>
                 <h4 className="font-medium">Features:</h4>

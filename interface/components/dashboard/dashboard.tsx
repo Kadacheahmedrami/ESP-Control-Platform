@@ -33,6 +33,8 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
     sendMessage: wsSendMessage,
     lastMessage,
     error: wsError,
+    wsEnabled,
+    toggleWebSocket,
   } = useWebSocket(ipAddress)
 
   // Process WebSocket messages for real-time updates
@@ -100,6 +102,8 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
         wsConnected={wsConnected}
         wsMessages={wsMessages}
         onSendMessage={wsSendMessage}
+        wsEnabled={wsEnabled}
+        onToggleWebSocket={toggleWebSocket}
       />
 
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -108,6 +112,8 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
           onDisconnect={onDisconnect}
           onToggleSidebar={toggleSidebar}
           wsConnected={wsConnected}
+          wsEnabled={wsEnabled}
+          onToggleWebSocket={toggleWebSocket}
           onRefresh={refreshDevices}
         />
 
@@ -119,10 +125,39 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
             </Alert>
           )}
 
-          {wsError && (
+          {wsError && wsEnabled && (
             <Alert variant="warning" className="mb-6 border-amber-500/50 shadow-sm">
-              <AlertTitle>WebSocket Error</AlertTitle>
-              <AlertDescription>{wsError}</AlertDescription>
+              <AlertTitle>WebSocket Connection Issue</AlertTitle>
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p>Unable to establish WebSocket connection. You can:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Check that your ESP32 is running a WebSocket server on port 81</li>
+                    <li>Verify the WebSocket server is configured with the path /ws</li>
+                    <li>Disable the WebSocket connection using the toggle in the navbar</li>
+                  </ul>
+                  <p className="text-sm">
+                    You can still control your devices without WebSocket connectivity, but you won't receive real-time
+                    updates.
+                  </p>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {ipAddress.includes("ngrok") && (
+            <Alert  className="mb-6 border-blue-500/50 shadow-sm">
+              <AlertTitle>Using ngrok URL</AlertTitle>
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p>You're connected to an ngrok URL. Keep in mind:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Ngrok URLs are temporary and will change when the tunnel is restarted</li>
+                    <li>WebSocket connections may require special configuration on the ESP32 side</li>
+                    <li>If you experience connection issues, try connecting directly to the ESP32's IP address</li>
+                  </ul>
+                </div>
+              </AlertDescription>
             </Alert>
           )}
 

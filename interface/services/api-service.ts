@@ -1,10 +1,28 @@
 import type { DeviceType } from "@/types/device-types"
 
 class ApiService {
+  // Helper function: returns protocol based on address.
+  // IPv4 addresses (only numbers and dots) use http,
+  // while domain names use https.
+  private getProtocol(address: string): string {
+    const ipRegex =
+      /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+    return ipRegex.test(address) ? "http://" : "https://"
+  }
+
+  // Helper function to build the full URL for an endpoint.
+  private buildUrl(address: string, endpoint: string): string {
+    const protocol = this.getProtocol(address)
+    return `${protocol}${address}${endpoint}`
+  }
+
   // Test connection to the ESP32
-  async testConnection(ipAddress: string): Promise<boolean> {
+  async testConnection(address: string): Promise<boolean> {
     try {
-      const response = await fetch(`http://${ipAddress}/api/devices`, {
+      const url = this.buildUrl(address, "/api/devices")
+      console.log(`Testing connection to: ${url}`)
+
+      const response = await fetch(url, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -22,7 +40,7 @@ class ApiService {
     } catch (err) {
       if (err instanceof Error) {
         if (err.name === "AbortError") {
-          throw new Error("Connection timed out. Please check the IP address and ensure the ESP32 is online.")
+          throw new Error("Connection timed out. Please check the address and ensure the ESP32 is online.")
         }
         throw err
       }
@@ -31,9 +49,10 @@ class ApiService {
   }
 
   // Get all devices from the ESP32
-  async getDevices(ipAddress: string): Promise<DeviceType[]> {
+  async getDevices(address: string): Promise<DeviceType[]> {
     try {
-      const response = await fetch(`http://${ipAddress}/api/devices`, {
+      const url = this.buildUrl(address, "/api/devices")
+      const response = await fetch(url, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -59,11 +78,7 @@ class ApiService {
   }
 
   // Add a new device to the ESP32 - FIXED to match ESP32's expected format
-  async addDevice(
-    ipAddress: string,
-    device: Omit<DeviceType, "id">,
-    existingDevices: DeviceType[] = [],
-  ): Promise<void> {
+  async addDevice(address: string, device: Omit<DeviceType, "id">, existingDevices: DeviceType[] = []): Promise<void> {
     try {
       // Generate a simple sequential name based on device type
       const deviceType = device.type.toLowerCase()
@@ -78,9 +93,7 @@ class ApiService {
       // Format JSON exactly as the ESP32 expects
       let jsonBody: string
 
-      // Check if we have a single pin or multiple pins
       if (device.pins.length === 1) {
-        // Format with single pin
         jsonBody = `{
           "id":"${deviceId}",
           "type":"${device.type}",
@@ -89,7 +102,6 @@ class ApiService {
           "direction":"${device.direction}"
         }`
       } else {
-        // Format with pins array
         jsonBody = `{
           "id":"${deviceId}",
           "type":"${device.type}",
@@ -99,10 +111,11 @@ class ApiService {
         }`
       }
 
-      // Remove whitespace to ensure consistent format
+      // Remove whitespace for consistent format
       jsonBody = jsonBody.replace(/\s+/g, "")
 
-      const response = await fetch(`http://${ipAddress}/api/device`, {
+      const url = this.buildUrl(address, "/api/device")
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -126,9 +139,10 @@ class ApiService {
   }
 
   // Update a device's state
-  async updateDeviceState(ipAddress: string, deviceId: string, state: string): Promise<void> {
+  async updateDeviceState(address: string, deviceId: string, state: string): Promise<void> {
     try {
-      const response = await fetch(`http://${ipAddress}/api/device/${deviceId}`, {
+      const url = this.buildUrl(address, `/api/device/${deviceId}`)
+      const response = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "text/plain",
@@ -153,4 +167,3 @@ class ApiService {
 }
 
 export const apiService = new ApiService()
-

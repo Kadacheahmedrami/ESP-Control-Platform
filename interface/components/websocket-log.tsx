@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface WebSocketLogProps {
   messages: string[]
@@ -77,15 +78,43 @@ export function WebSocketLog({ messages, connected, enabled, onSendMessage, onTo
         <CardDescription>Real-time updates from ESP32 WebSocket on port 81</CardDescription>
       </CardHeader>
       <CardContent>
+        {!enabled && (
+          <Alert className="mb-4">
+            <AlertDescription>
+              WebSocket connection is currently disabled. Toggle the switch above to enable it.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <ScrollArea className="h-[300px] rounded-md border p-4" ref={scrollAreaRef}>
           {messages.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
-              {!enabled ? "WebSocket is disabled" : connected ? "Waiting for messages..." : "Attempting to connect..."}
+              {!enabled ? (
+                "WebSocket is disabled"
+              ) : connected ? (
+                "Waiting for messages..."
+              ) : (
+                <div>
+                  <p>Attempting to connect...</p>
+                  <p className="text-xs mt-2 text-amber-500">
+                    If connection fails, check that the ESP32 WebSocket server is running on port 81 at the path /ws.
+                  </p>
+                </div>
+              )}
             </p>
           ) : (
             <div className="space-y-2">
               {messages.map((message, index) => (
-                <div key={index} className="border-l-2 border-primary pl-3 py-1">
+                <div
+                  key={index}
+                  className={`border-l-2 pl-3 py-1 ${
+                    message.includes("error") || message.includes("failed")
+                      ? "border-destructive text-destructive"
+                      : message.includes("established") || message.includes("Connected")
+                        ? "border-green-500"
+                        : "border-primary"
+                  }`}
+                >
                   <p className="text-xs text-muted-foreground">{new Date().toLocaleTimeString()}</p>
                   <pre className="text-sm whitespace-pre-wrap break-all">{message}</pre>
                 </div>

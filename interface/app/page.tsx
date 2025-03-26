@@ -22,13 +22,13 @@ export default function Home() {
     }
   }, [getItem])
 
-  const handleConnect = (ip: string) => {
-    setIpAddress(ip)
-    setItem("esp32-ip-address", ip)
+  const handleConnect = (address: string) => {
+    setIpAddress(address)
+    setItem("esp32-ip-address", address)
     setIsConnected(true)
     toast({
       title: "Connected",
-      description: `Successfully connected to ESP32 at ${ip}`,
+      description: `Successfully connected to ESP32 at ${address}`,
     })
   }
 

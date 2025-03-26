@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,27 +20,35 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
   const [ipAddress, setIpAddress] = useState(initialIpAddress)
   const [error, setError] = useState<string | null>(null)
   const [isValidating, setIsValidating] = useState(false)
-
-  const validateIP = (ip: string) => {
-    // Basic IP address validation
+  
+  const validateAddress = (address: string) => {
+    // IPv4 address validation (without protocol)
     const ipRegex =
       /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-    return ipRegex.test(ip)
+  
+    // Domain name validation with optional protocol
+    const domainRegex =
+      /^(https?:\/\/)?[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+\/?$/
+  
+    // Simple hostname validation (one word, letters, numbers, and hyphens)
+    const hostnameRegex = /^[a-zA-Z0-9-]{1,63}$/
+  
+    return ipRegex.test(address) || domainRegex.test(address) || hostnameRegex.test(address)
   }
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    if (!validateIP(ipAddress)) {
-      setError("Please enter a valid IP address")
+    if (!validateAddress(ipAddress)) {
+      setError("Please enter a valid IP address, domain name, or hostname")
       return
     }
 
     setIsValidating(true)
 
     try {
-      // Test the connection to the ESP32 device
+      // Test connection to the ESP32 device via /api/devices endpoint
       await apiService.testConnection(ipAddress)
       onConnect(ipAddress)
     } catch (err) {
@@ -73,7 +80,7 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
           </div>
           <CardTitle className="text-3xl text-center">ESP32 IoT Control Panel</CardTitle>
           <CardDescription className="text-center text-base">
-            Connect to your ESP32 device to monitor and control your IoT devices
+            Connect to your ESP32 device to monitor and control your IoT devices.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -83,7 +90,7 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
                 <div className="relative">
                   <Input
                     type="text"
-                    placeholder="192.168.1.100"
+                    placeholder="192.168.1.100 or example.ngrok-free.app"
                     value={ipAddress}
                     onChange={(e) => setIpAddress(e.target.value)}
                     disabled={isValidating}
@@ -91,7 +98,9 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
                   />
                   <Wifi className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
-                <p className="text-xs text-muted-foreground">Note: The WebSocket server runs on port 81</p>
+                <p className="text-xs text-muted-foreground">
+                  Enter an IP address, hostname, domain name, or ngrok URL. (Note: The WebSocket server runs on port 81.)
+                </p>
               </div>
 
               {error && (
@@ -131,4 +140,3 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
     </motion.div>
   )
 }
-
