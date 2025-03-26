@@ -2,8 +2,8 @@
 #include <ESP32Servo.h>
 #include <Wire.h>
 
-// Global objects for device control
-std::vector<Servo> servoControls;
+// Declare a global Servo instance for the servo device (adjust naming as needed)
+Servo servo1;
 
 void setupDevicePins() {
     // Initialize all registered devices
@@ -24,22 +24,14 @@ void setupDevicePins() {
                     break;
             }
         }
-
-        // Special initializations for specific device types
-        if (device.type == "servo") {
-            Servo servo;
-            servo.attach(device.pins[0]);
-            servoControls.push_back(servo);
-        }
     }
 }
 
 bool updateDeviceState(Device &device, const String &newState) {
     bool success = false;
-
+    
     // Route state update to appropriate device type handler
     if (device.type == "led") 
-      
         success = controlLED(device, newState);
     else if (device.type == "servo") 
         success = controlServo(device, newState);
@@ -65,19 +57,10 @@ bool updateDeviceState(Device &device, const String &newState) {
 }
 
 bool controlLED(Device &device, const String &state) {
-    // Print detailed device information
-    Serial.println("LED Control - Device Details:");
-    Serial.println("Device ID: " + device.id);
-    Serial.println("Device Type: " + device.type);
-    Serial.println("Requested State: " + state);
-    Serial.println("Current Device State: " + device.state);
-    Serial.print(device.pins[0]);
-    Serial.println("Interface: " + device.interface);
-
-    // LED control logic
+    Serial.println(device.pins[0]);
+    Serial.println(state);
     pinMode(device.pins[0], OUTPUT);
     if (state == "on" || state == "1" || state == "true") {
-     
         digitalWrite(device.pins[0], HIGH);
         Serial.println("LED Turned ON");
         return true;
@@ -87,28 +70,26 @@ bool controlLED(Device &device, const String &state) {
         Serial.println("LED Turned OFF");
         return true;
     }
-    
     Serial.println("Invalid LED state");
     return false;
 }
 
 bool controlServo(Device &device, const String &state) {
     int angle = state.toInt();
-    if (angle >= 0 && angle <= 180) {
-        // Find the right servo by matching the pin
-        for (size_t i = 0; i < servoControls.size(); i++) {
-            if (device.pins[0] == servoControls[i].attached()) {
-                servoControls[i].write(angle);
-                return true;
-            }
-        }
+    Serial.println(angle);
+    Serial.println(device.pins[0]);
+
+    // Instead of creating a new Servo instance every time, use the global instance
+    // Make sure to attach it only once, for example in setup(), or check if it's already attached
+    if (!servo1.attached()) {
+        servo1.attach(device.pins[0]);
     }
-    return false;
+    servo1.write(angle);
+    return true;
 }
 
 bool controlStepperMotor(Device &device, const String &state) {
     // Implement stepper motor control logic
-    // This is a placeholder - you'll need to add actual stepper motor library support
     return false;
 }
 
@@ -120,7 +101,6 @@ bool controlMotor(Device &device, const String &state) {
         return true;
     }
     
-    // Parse state: on:speed:direction
     int firstColon = state.indexOf(':');
     int secondColon = state.indexOf(':', firstColon + 1);
     
@@ -129,7 +109,6 @@ bool controlMotor(Device &device, const String &state) {
     int speed = state.substring(firstColon + 1, secondColon).toInt();
     String direction = state.substring(secondColon + 1);
     
-    // Assuming PWM for speed control and direction pins
     if (device.pins.size() >= 2) {
         if (direction == "forward") {
             digitalWrite(device.pins[0], HIGH);
@@ -139,7 +118,6 @@ bool controlMotor(Device &device, const String &state) {
             digitalWrite(device.pins[1], HIGH);
         }
         
-        // PWM speed control
         analogWrite(device.pins[2], map(speed, 0, 100, 0, 255));
         return true;
     }
@@ -161,18 +139,14 @@ bool controlRelay(Device &device, const String &state) {
 
 bool controlLEDStrip(Device &device, const String &state) {
     // Placeholder for LED strip control
-    // You'll need to implement this based on your specific LED strip library
     return false;
 }
 
 bool controlSensor(Device &device, const String &state) {
-    // For sensors, this is mainly for logging or tracking
-    // Actual sensor reading should be done separately
     return true;
 }
 
 bool controlGenericDevice(Device &device, const String &state) {
-    // Generic fallback for custom devices
     return true;
 }
 

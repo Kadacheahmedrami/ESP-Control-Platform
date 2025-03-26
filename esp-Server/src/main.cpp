@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include <WiFi.h>
 #include <SPIFFS.h>
 #include "ESPExpress.h"

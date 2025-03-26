@@ -163,17 +163,20 @@ void registerDeviceRoutes(ESPExpress &app) {
   app.put("/api/device/:id", [](Request &req, Response &res) {
     String deviceId = req.getParam("id");
     String newState = req.body;
+ 
+
     Serial.println("[DEBUG] PUT /api/device/" + deviceId + " with new state: " + newState);
     
     bool found = false;
     bool updateSuccess = false;
-    Serial.println("serial works ??");
+    
     for (auto &d : devices) {
+
       if (d.id == deviceId) {
         found = true;
         
         updateSuccess = updateDeviceState(d, newState);
-   
+        
 
         break;
       }
