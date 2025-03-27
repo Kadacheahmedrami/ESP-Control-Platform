@@ -129,3 +129,53 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+
+@layer utilities {
+  /* Extra small screens utility class */
+  @media (min-width: 475px) {
+    .xs\:inline {
+      display: inline;
+    }
+    .xs\:hidden {
+      display: none;
+    }
+    .xs\:flex {
+      display: flex;
+    }
+    .xs\:h-auto {
+      height: auto;
+    }
+    .xs\:w-auto {
+      width: auto;
+    }
+  }
+
+  /* Improve scrolling on mobile */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Safe area insets for modern mobile browsers */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Improve touch targets for mobile */
+@media (max-width: 640px) {
+  button,
+  [role="button"],
+  a,
+  input,
+  select,
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+

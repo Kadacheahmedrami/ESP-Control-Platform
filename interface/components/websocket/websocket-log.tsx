@@ -72,7 +72,7 @@ export function WebSocketLog({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Switch id="ws-toggle-compact" checked={enabled} onCheckedChange={onToggle}  />
+            <Switch id="ws-toggle-compact" checked={enabled} onCheckedChange={onToggle} />
             <Badge variant="outline">Port 81</Badge>
           </div>
         </div>

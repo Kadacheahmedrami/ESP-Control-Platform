@@ -29,14 +29,14 @@ export function DeviceGrid({ devices, onUpdateDevice, ipAddress }: DeviceGridPro
 
   return (
     <motion.div
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6"
       variants={container}
       initial="hidden"
       animate="show"
     >
       {devices.map((device) => (
-        <motion.div key={device.id} variants={item}>
-          <DeviceCard device={device} onUpdateState={onUpdateDevice} ipAddress={ipAddress} />
+        <motion.div key={device.id} variants={item} className="flex w-full">
+          <DeviceCard device={device} onUpdateState={onUpdateDevice} ipAddress={ipAddress} className="flex-1 w-full" />
         </motion.div>
       ))}
     </motion.div>

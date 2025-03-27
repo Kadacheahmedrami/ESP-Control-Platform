@@ -20,22 +20,21 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
   const [ipAddress, setIpAddress] = useState(initialIpAddress)
   const [error, setError] = useState<string | null>(null)
   const [isValidating, setIsValidating] = useState(false)
-  
+
   const validateAddress = (address: string) => {
     // IPv4 address validation (without protocol)
     const ipRegex =
       /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
-  
+
     // Domain name validation with optional protocol
-    const domainRegex =
-      /^(https?:\/\/)?[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+\/?$/
-  
+    const domainRegex = /^(https?:\/\/)?[a-zA-Z0-9]([-a-zA-Z0-9]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+\/?$/
+
     // Simple hostname validation (one word, letters, numbers, and hyphens)
     const hostnameRegex = /^[a-zA-Z0-9-]{1,63}$/
-  
+
     return ipRegex.test(address) || domainRegex.test(address) || hostnameRegex.test(address)
   }
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -67,7 +66,7 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md"
+      className="w-full max-w-md px-4"
     >
       <div className="absolute top-4 right-4">
         <ThemeToggle />
@@ -75,11 +74,11 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
 
       <Card className="border-2 shadow-lg glass-effect">
         <CardHeader className="space-y-1">
-          <div className="flex items-center justify-center mb-6">
-            <Server className="h-16 w-16 text-primary" />
+          <div className="flex items-center justify-center mb-4 sm:mb-6">
+            <Server className="h-12 w-12 sm:h-16 sm:w-16 text-primary" />
           </div>
-          <CardTitle className="text-3xl text-center">ESP32 IoT Control Panel</CardTitle>
-          <CardDescription className="text-center text-base">
+          <CardTitle className="text-2xl sm:text-3xl text-center">ESP32 IoT Control Panel</CardTitle>
+          <CardDescription className="text-center text-sm sm:text-base">
             Connect to your ESP32 device to monitor and control your IoT devices.
           </CardDescription>
         </CardHeader>
@@ -94,12 +93,13 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
                     value={ipAddress}
                     onChange={(e) => setIpAddress(e.target.value)}
                     disabled={isValidating}
-                    className="pl-10 h-12 text-lg"
+                    className="pl-10 h-12 text-base sm:text-lg"
                   />
                   <Wifi className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Enter an IP address, hostname, domain name, or ngrok URL. (Note: The WebSocket server runs on port 81.)
+                  Enter an IP address, hostname, domain name, or ngrok URL. (Note: The WebSocket server runs on port
+                  81.)
                 </p>
               </div>
 
@@ -113,7 +113,12 @@ export function ConnectionForm({ onConnect, initialIpAddress = "" }: ConnectionF
           </form>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full h-12 text-lg" onClick={handleSubmit} disabled={isValidating}>
+          <Button
+            type="submit"
+            className="w-full h-12 text-base sm:text-lg"
+            onClick={handleSubmit}
+            disabled={isValidating}
+          >
             {isValidating ? (
               <>
                 <svg

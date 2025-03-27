@@ -18,32 +18,34 @@ interface DeviceDetailsDialogProps {
 export function DeviceDetailsDialog({ device, open, onClose, onUpdateState, ipAddress }: DeviceDetailsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>{device.id}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-base sm:text-lg">{device.id}</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             {device.type} device on pins {device.pins.join(", ")}
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="controls" className="mt-4">
+        <Tabs defaultValue="controls" className="mt-2 sm:mt-4 flex-1 flex flex-col">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="controls">Controls</TabsTrigger>
             <TabsTrigger value="info">Device Info</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="controls" className="p-4">
-            <DeviceControls device={device} onUpdateState={onUpdateState} isUpdating={false} ipAddress={ipAddress} />
-          </TabsContent>
+          <div className="flex-1 overflow-auto">
+            <TabsContent value="controls" className="p-2 sm:p-4 h-full">
+              <DeviceControls device={device} onUpdateState={onUpdateState} isUpdating={false} ipAddress={ipAddress} />
+            </TabsContent>
 
-          <TabsContent value="info" className="p-4">
-            <DeviceInfo device={device} />
-          </TabsContent>
+            <TabsContent value="info" className="p-2 sm:p-4 h-full">
+              <DeviceInfo device={device} />
+            </TabsContent>
 
-          <TabsContent value="history" className="p-4">
-            <DeviceHistory device={device} ipAddress={ipAddress} />
-          </TabsContent>
+            <TabsContent value="history" className="p-2 sm:p-4 h-full">
+              <DeviceHistory device={device} ipAddress={ipAddress} />
+            </TabsContent>
+          </div>
         </Tabs>
       </DialogContent>
     </Dialog>

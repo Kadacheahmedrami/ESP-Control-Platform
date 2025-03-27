@@ -14,11 +14,18 @@ export default function Home() {
   const { getItem, setItem } = useLocalStorage()
   const { toast } = useToast()
 
-  // Load the last used IP address from localStorage on initial render
+  // Load the last used IP address and connection state from localStorage on initial render
   useEffect(() => {
     const savedIp = getItem("esp32-ip-address")
+    const savedConnectionState = getItem("esp32-connected")
+
     if (savedIp) {
       setIpAddress(savedIp)
+
+      // If there was a previous connection, automatically reconnect
+      if (savedConnectionState === "true") {
+        setIsConnected(true)
+      }
     }
   }, [getItem])
 
@@ -26,6 +33,7 @@ export default function Home() {
     setIpAddress(address)
     setItem("esp32-ip-address", address)
     setIsConnected(true)
+    setItem("esp32-connected", "true") // Save connection state
     toast({
       title: "Connected",
       description: `Successfully connected to ESP32 at ${address}`,
@@ -34,6 +42,7 @@ export default function Home() {
 
   const handleDisconnect = () => {
     setIsConnected(false)
+    setItem("esp32-connected", "false") // Update connection state
     toast({
       title: "Disconnected",
       description: "Disconnected from ESP32 device",

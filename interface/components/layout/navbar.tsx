@@ -3,8 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme/theme-toggle"
 import { Badge } from "@/components/ui/badge"
-import { Menu, RefreshCw, Wifi, WifiOff, LogOut, Info, Power } from "lucide-react"
-import { motion } from "framer-motion"
+import { Menu, RefreshCw, Wifi, WifiOff, LogOut, Power } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -34,21 +33,34 @@ export function Navbar({
   return (
     <TooltipProvider>
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-14 items-center px-4">
-          <Button variant="ghost" size="icon" onClick={onToggleSidebar} className="mr-2 md:hidden">
-            <Menu className="h-5 w-5" />
+        <div className="flex h-14 items-center px-2 sm:px-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              // Dispatch a custom event to toggle the mobile sidebar
+              document.dispatchEvent(new CustomEvent("toggle-mobile-sidebar"))
+
+              // Also call the original toggle function for desktop
+              onToggleSidebar()
+            }}
+            className="mr-2 md:hidden touch-target h-10 w-10 flex items-center justify-center"
+            aria-label="Toggle sidebar menu"
+          >
+            <Menu className="h-6 w-6" />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
 
           <div className="flex items-center">
-            <h1 className="text-lg font-semibold">ESP32 Control Panel</h1>
-            <Badge variant="outline" className="ml-2 bg-primary/10">
+            <h1 className="text-base sm:text-lg font-semibold truncate">ESP32 Control Panel</h1>
+            <Badge variant="outline" className="ml-2 bg-primary/10 hidden sm:flex">
               {ipAddress}
             </Badge>
           </div>
 
-          <div className="ml-auto flex items-center space-x-2">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center mr-2">
+          <div className="ml-auto flex items-center space-x-1 sm:space-x-2">
+            {/* On mobile, we'll show a simplified version of the WebSocket status */}
+            <div className="hidden sm:flex items-center mr-2">
               <div className="flex items-center gap-2">
                 <Switch id="ws-toggle-nav" checked={wsEnabled} onCheckedChange={onToggleWebSocket} className="mr-1" />
 
@@ -92,7 +104,16 @@ export function Navbar({
                   </Tooltip>
                 )}
               </div>
-            </motion.div>
+            </div>
+
+            {/* For mobile, just show a simple indicator */}
+            <div className="flex sm:hidden items-center">
+              <div
+                className={`h-3 w-3 rounded-full ${
+                  !wsEnabled ? "bg-gray-400" : wsConnected ? "bg-green-500" : "bg-amber-500"
+                }`}
+              />
+            </div>
 
             <Tooltip>
               <TooltipTrigger asChild>
@@ -103,18 +124,6 @@ export function Navbar({
               </TooltipTrigger>
               <TooltipContent>
                 <p>Refresh devices</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => setShowInfo(true)}>
-                  <Info className="h-5 w-5" />
-                  <span className="sr-only">Info</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>About ESP32 Control Panel</p>
               </TooltipContent>
             </Tooltip>
 

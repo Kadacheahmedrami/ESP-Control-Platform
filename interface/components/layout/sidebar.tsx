@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WebSocketLog } from "@/components/websocket/websocket-log"
 import { DeviceIcon } from "@/components/devices/device-icon"
@@ -12,7 +12,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface SidebarProps {
   open: boolean
+  mobileOpen?: boolean
   onToggle: () => void
+  setMobileOpen?: (open: boolean) => void
   deviceCategories: string[]
   activeCategory: string | null
   onCategorySelect: (category: string | null) => void
@@ -25,7 +27,9 @@ interface SidebarProps {
 
 export function Sidebar({
   open,
+  mobileOpen = false,
   onToggle,
+  setMobileOpen,
   deviceCategories,
   activeCategory,
   onCategorySelect,
@@ -35,11 +39,44 @@ export function Sidebar({
   wsEnabled,
   onToggleWebSocket,
 }: SidebarProps) {
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [internalMobileOpen, setInternalMobileOpen] = useState(mobileOpen)
+
+  // Use the provided setMobileOpen function if available, otherwise use the internal state
+  const handleMobileOpenChange = useCallback(
+    (open: boolean) => {
+      if (setMobileOpen) {
+        setMobileOpen(open)
+      } else {
+        setInternalMobileOpen(open)
+      }
+    },
+    [setMobileOpen],
+  )
+
+  // Use the provided mobileOpen value if available, otherwise use the internal state
+  const effectiveMobileOpen = setMobileOpen ? mobileOpen : internalMobileOpen
+
+  const [mobileOpenLocal, setMobileOpenLocal] = useState(false)
 
   const handleCategoryClick = (category: string) => {
     onCategorySelect(activeCategory === category ? null : category)
   }
+
+  // Listen for the toggle event from the navbar
+  useEffect(() => {
+    const handleNavbarToggle = () => {
+      if (window.innerWidth < 768) {
+        setMobileOpenLocal((prev) => !prev)
+      }
+    }
+
+    // Create a custom event listener for the navbar toggle
+    document.addEventListener("toggle-mobile-sidebar", handleNavbarToggle)
+
+    return () => {
+      document.removeEventListener("toggle-mobile-sidebar", handleNavbarToggle)
+    }
+  }, [])
 
   // Sidebar for desktop
   const DesktopSidebar = (
@@ -114,12 +151,7 @@ export function Sidebar({
 
   // Sidebar for mobile
   const MobileSidebar = (
-    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <DeviceIcon type="gauge" className="h-5 w-5" />
-        </Button>
-      </SheetTrigger>
+    <Sheet open={effectiveMobileOpen} onOpenChange={handleMobileOpenChange}>
       <SheetContent side="left" className="p-0">
         <Tabs defaultValue="devices" className="h-full flex flex-col">
           <TabsList className="justify-center grid grid-cols-2">
@@ -139,7 +171,7 @@ export function Sidebar({
                       className="w-full justify-start"
                       onClick={() => {
                         handleCategoryClick(category)
-                        setMobileOpen(false)
+                        handleMobileOpenChange(false)
                       }}
                     >
                       <DeviceIcon type={category} className="h-4 w-4 mr-2" />

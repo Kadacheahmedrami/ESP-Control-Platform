@@ -22,6 +22,7 @@ interface DashboardProps {
 
 export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const { toast } = useToast()
 
@@ -76,7 +77,11 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
   const filteredDevices = activeCategory ? deviceCategories[activeCategory] || [] : devices
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
+    if (window.innerWidth >= 768) {
+      setSidebarOpen(!sidebarOpen)
+    } else {
+      setMobileSidebarOpen(!mobileSidebarOpen)
+    }
   }
 
   if (loading) {
@@ -104,6 +109,8 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
         onSendMessage={wsSendMessage}
         wsEnabled={wsEnabled}
         onToggleWebSocket={toggleWebSocket}
+        mobileOpen={mobileSidebarOpen}
+        setMobileOpen={setMobileSidebarOpen}
       />
 
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -117,16 +124,16 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
           onRefresh={refreshDevices}
         />
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto p-3 pb-20 sm:p-4 sm:pb-16 md:p-6 md:pb-6 safe-area-inset-bottom">
           {error && (
-            <Alert variant="destructive" className="mb-6 border-destructive/50 shadow-sm">
+            <Alert variant="destructive" className="mb-4 sm:mb-6 border-destructive/50 shadow-sm">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {wsError && wsEnabled && (
-            <Alert variant="warning" className="mb-6 border-amber-500/50 shadow-sm">
+            <Alert variant="warning" className="mb-4 sm:mb-6 border-amber-500/50 shadow-sm">
               <AlertTitle>WebSocket Connection Issue</AlertTitle>
               <AlertDescription>
                 <div className="space-y-2">
@@ -146,7 +153,7 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
           )}
 
           {ipAddress.includes("ngrok") && (
-            <Alert  className="mb-6 border-blue-500/50 shadow-sm">
+            <Alert className="mb-4 sm:mb-6 border-blue-500/50 shadow-sm">
               <AlertTitle>Using ngrok URL</AlertTitle>
               <AlertDescription>
                 <div className="space-y-2">
@@ -165,28 +172,28 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center h-[80vh] text-center"
+              className="flex flex-col items-center justify-center h-[60vh] sm:h-[80vh] text-center px-4"
             >
-              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-                <Cpu className="h-12 w-12 text-primary" />
+              <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4 sm:mb-6">
+                <Cpu className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">No devices found</h2>
-              <p className="text-muted-foreground mb-6 max-w-md">
+              <h2 className="text-xl sm:text-2xl font-bold mb-2">No devices found</h2>
+              <p className="text-muted-foreground mb-6 max-w-md text-sm sm:text-base">
                 No devices are registered on your ESP32. Add a device using the button below to get started.
               </p>
             </motion.div>
           ) : (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold">Devices</h2>
-                  <p className="text-muted-foreground">
+                  <h2 className="text-xl sm:text-2xl font-bold">Devices</h2>
+                  <p className="text-sm text-muted-foreground">
                     {filteredDevices.length} {filteredDevices.length === 1 ? "device" : "devices"}
                     {activeCategory ? ` of type "${activeCategory}"` : ""}
                   </p>
                 </div>
                 {activeCategory && (
-                  <Button variant="outline" onClick={() => setActiveCategory(null)}>
+                  <Button variant="outline" size="sm" onClick={() => setActiveCategory(null)}>
                     Clear Filter
                   </Button>
                 )}

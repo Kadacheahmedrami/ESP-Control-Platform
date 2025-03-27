@@ -50,32 +50,34 @@ export function WebSocketLog({ messages, connected, enabled, onSendMessage, onTo
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle>WebSocket Log (Port 81)</CardTitle>
+          <CardTitle className="text-base sm:text-lg">WebSocket Log (Port 81)</CardTitle>
           <div className="flex items-center gap-2">
             <Switch id="websocket-toggle" checked={enabled} onCheckedChange={onToggle} />
             <Label htmlFor="websocket-toggle" className="cursor-pointer">
               {!enabled ? (
-                <Badge variant="outline" className="flex items-center gap-1">
+                <Badge variant="outline" className="flex items-center gap-1 text-xs">
                   <Power className="h-3 w-3" />
-                  Disabled
+                  <span className="hidden xs:inline">Disabled</span>
                 </Badge>
               ) : connected ? (
-                <Badge variant="default" className="flex items-center gap-1">
+                <Badge variant="default" className="flex items-center gap-1 text-xs">
                   <Wifi className="h-3 w-3" />
-                  Connected
+                  <span className="hidden xs:inline">Connected</span>
                 </Badge>
               ) : (
-                <Badge variant="secondary" className="flex items-center gap-1">
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                   <WifiOff className="h-3 w-3" />
-                  Connecting...
+                  <span className="hidden xs:inline">Connecting...</span>
                 </Badge>
               )}
             </Label>
           </div>
         </div>
-        <CardDescription>Real-time updates from ESP32 WebSocket on port 81</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
+          Real-time updates from ESP32 WebSocket on port 81
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {!enabled && (
@@ -86,9 +88,9 @@ export function WebSocketLog({ messages, connected, enabled, onSendMessage, onTo
           </Alert>
         )}
 
-        <ScrollArea className="h-[300px] rounded-md border p-4" ref={scrollAreaRef}>
+        <ScrollArea className="h-[200px] sm:h-[300px] rounded-md border p-2 sm:p-4 mobile-scroll" ref={scrollAreaRef}>
           {messages.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
+            <p className="text-center text-muted-foreground py-4 sm:py-8 text-sm">
               {!enabled ? (
                 "WebSocket is disabled"
               ) : connected ? (
@@ -107,7 +109,7 @@ export function WebSocketLog({ messages, connected, enabled, onSendMessage, onTo
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`border-l-2 pl-3 py-1 ${
+                  className={`border-l-2 pl-2 sm:pl-3 py-1 text-xs sm:text-sm ${
                     message.includes("error") || message.includes("failed")
                       ? "border-destructive text-destructive"
                       : message.includes("established") || message.includes("Connected")
@@ -116,7 +118,7 @@ export function WebSocketLog({ messages, connected, enabled, onSendMessage, onTo
                   }`}
                 >
                   <p className="text-xs text-muted-foreground">{new Date().toLocaleTimeString()}</p>
-                  <pre className="text-sm whitespace-pre-wrap break-all">{message}</pre>
+                  <pre className="whitespace-pre-wrap break-all">{message}</pre>
                 </div>
               ))}
             </div>
@@ -131,6 +133,7 @@ export function WebSocketLog({ messages, connected, enabled, onSendMessage, onTo
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={!connected || !enabled}
+            className="text-sm"
           />
           <Button onClick={handleSendMessage} disabled={!connected || !enabled || !inputMessage.trim()}>
             <Send className="h-4 w-4" />
