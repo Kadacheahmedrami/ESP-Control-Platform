@@ -1,9 +1,10 @@
 #include "device_controller.h"
 #include <ESP32Servo.h>
 #include <Wire.h>
+#include <map>
 
-// Declare a global Servo instance for the servo device (adjust naming as needed)
-Servo servo1;
+// Global map to store Servo instances for each servo pin
+std::map<int, Servo> servoMap;
 
 void setupDevicePins() {
     // Initialize all registered devices
@@ -76,15 +77,21 @@ bool controlLED(Device &device, const String &state) {
 
 bool controlServo(Device &device, const String &state) {
     int angle = state.toInt();
+    int servoPin = device.pins[0];
+    Serial.print("Servo angle: ");
     Serial.println(angle);
-    Serial.println(device.pins[0]);
+    Serial.print("Servo pin: ");
+    Serial.println(servoPin);
 
-    // Instead of creating a new Servo instance every time, use the global instance
-    // Make sure to attach it only once, for example in setup(), or check if it's already attached
-    if (!servo1.attached()) {
-        servo1.attach(device.pins[0]);
+    // Check if a Servo instance for this pin already exists in the map
+    if (servoMap.find(servoPin) == servoMap.end()) {
+        // Create and attach a new Servo instance if not found
+        servoMap[servoPin] = Servo();
+        servoMap[servoPin].attach(servoPin);
     }
-    servo1.write(angle);
+
+    // Write the angle to the servo associated with this pin
+    servoMap[servoPin].write(angle);
     return true;
 }
 

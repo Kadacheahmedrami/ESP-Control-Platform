@@ -1,5 +1,5 @@
 #include "devices.h"
-#include "ESPControlPlatform.h"  // Provides access to global 'devices' and helper functions
+#include "ESPControlPlatform.h"
 #include "device_controller.h"
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
@@ -7,11 +7,10 @@
 // File path in SPIFFS to store devices
 const char* DEVICES_FILE = "/devices.json";
 
-// Forward declarations for persistence functions
+// Persistence function prototypes
 bool saveDevicesToFlash();
 bool loadDevicesFromFlash();
 
-// Call this function during setup to load devices from flash memory.
 void initializeDevices() {
   Serial.println("[DEBUG] Initializing devices from flash...");
   if (!loadDevicesFromFlash()) {
@@ -21,214 +20,155 @@ void initializeDevices() {
   }
 }
 
-// Register all device routes for CRUD operations
+// Helper function to convert enums to strings
+String getInterfaceTypeString(InterfaceType interface) {
+  switch (interface) {
+    case DIGITAL_IF: return "digital";
+    case ANALOG_IF:  return "analog";
+    case PWM_IF:     return "pwm";
+    case I2C_IF:     return "i2c";
+    case SPI_IF:     return "spi";
+    default:         return "unknown";
+  }
+}
+
+String getDeviceDirectionString(DeviceDirection direction) {
+  switch (direction) {
+    case INPUT_DEVICE:      return "input";
+    case OUTPUT_DEVICE:     return "output";
+    case BIDIRECTIONAL:     return "bidirectional";
+    default:                return "unknown";
+  }
+}
+
 void registerDeviceRoutes(ESPExpress &app) {
   // GET /api/devices - List all devices
   app.get("/api/devices", [](Request &req, Response &res) {
-    String json = "[";
-    for (size_t i = 0; i < devices.size(); i++) {
-      json += "{";
-      json += "\"id\":\"" + devices[i].id + "\",";
-      json += "\"type\":\"" + devices[i].type + "\",";
+    JsonDocument doc;
+    JsonArray deviceArray = doc.to<JsonArray>();
+
+    for (const auto& device : devices) {
+      JsonObject deviceObj = deviceArray.add<JsonObject>();
       
-      // Output pins array
-      json += "\"pins\":[";
-      for (size_t j = 0; j < devices[i].pins.size(); j++) {
-        json += String(devices[i].pins[j]);
-        if (j < devices[i].pins.size() - 1)
-          json += ",";
+      deviceObj["id"] = device.id;
+      deviceObj["type"] = device.type;
+      deviceObj["state"] = device.state;
+      
+      JsonArray pinsArray = deviceObj["pins"].to<JsonArray>();
+      for (int pin : device.pins) {
+        pinsArray.add(pin);
       }
-      json += "],";
       
-      json += "\"state\":\"" + devices[i].state + "\",";
-      
-      // Convert interface enum back to string
-      String interfaceStr;
-      switch (devices[i].interface) {
-        case DIGITAL_IF: interfaceStr = "digital"; break;
-        case ANALOG_IF:  interfaceStr = "analog"; break;
-        case PWM_IF:     interfaceStr = "pwm"; break;
-        case I2C_IF:     interfaceStr = "i2c"; break;
-        case SPI_IF:     interfaceStr = "spi"; break;
-        default:         interfaceStr = "unknown";
-      }
-      json += "\"interfaceType\":\"" + interfaceStr + "\",";
-      
-      // Convert direction enum back to string
-      String dirStr;
-      switch (devices[i].direction) {
-        case INPUT_DEVICE:      dirStr = "input"; break;
-        case OUTPUT_DEVICE:     dirStr = "output"; break;
-        case BIDIRECTIONAL:     dirStr = "bidirectional"; break;
-        default:                dirStr = "unknown";
-      }
-      json += "\"direction\":\"" + dirStr + "\"";
-      json += "}";
-      if (i < devices.size() - 1)
-        json += ",";
+      deviceObj["interfaceType"] = getInterfaceTypeString(device.interface);
+      deviceObj["direction"] = getDeviceDirectionString(device.direction);
     }
-    json += "]";
-    Serial.println("[DEBUG] GET /api/devices response JSON: " + json);
-    res.sendJson(json);
+
+    String jsonResponse;
+    serializeJson(doc, jsonResponse);
+    Serial.println("[DEBUG] GET /api/devices response JSON: " + jsonResponse);
+    res.sendJson(jsonResponse);
   });
 
   // GET /api/device/:id - Get a single device by id
   app.get("/api/device/:id", [](Request &req, Response &res) {
     String deviceId = req.getParam("id");
     Serial.println("[DEBUG] GET /api/device/" + deviceId);
-    bool found = false;
-    String json = "";
-    for (size_t i = 0; i < devices.size(); i++) {
-      if (devices[i].id == deviceId) {
-        json += "{";
-        json += "\"id\":\"" + devices[i].id + "\",";
-        json += "\"type\":\"" + devices[i].type + "\",";
-        json += "\"state\":\"" + devices[i].state + "\",";
-        json += "\"pins\":[";
-        for (size_t j = 0; j < devices[i].pins.size(); j++) {
-          json += String(devices[i].pins[j]);
-          if (j < devices[i].pins.size() - 1)
-            json += ",";
+
+    for (const auto& device : devices) {
+      if (device.id == deviceId) {
+        JsonDocument doc;
+        JsonObject deviceObj = doc.to<JsonObject>();
+        
+        deviceObj["id"] = device.id;
+        deviceObj["type"] = device.type;
+        deviceObj["state"] = device.state;
+        
+        JsonArray pinsArray = deviceObj["pins"].to<JsonArray>();
+        for (int pin : device.pins) {
+          pinsArray.add(pin);
         }
-        json += "],";
-        String interfaceStr;
-        switch (devices[i].interface) {
-          case DIGITAL_IF: interfaceStr = "digital"; break;
-          case ANALOG_IF:  interfaceStr = "analog"; break;
-          case PWM_IF:     interfaceStr = "pwm"; break;
-          case I2C_IF:     interfaceStr = "i2c"; break;
-          case SPI_IF:     interfaceStr = "spi"; break;
-          default:         interfaceStr = "unknown";
-        }
-        json += "\"interfaceType\":\"" + interfaceStr + "\",";
-        String dirStr;
-        switch (devices[i].direction) {
-          case INPUT_DEVICE:      dirStr = "input"; break;
-          case OUTPUT_DEVICE:     dirStr = "output"; break;
-          case BIDIRECTIONAL:     dirStr = "bidirectional"; break;
-          default:                dirStr = "unknown";
-        }
-        json += "\"direction\":\"" + dirStr + "\"";
-        json += "}";
-        found = true;
-        break;
+        
+        deviceObj["interfaceType"] = getInterfaceTypeString(device.interface);
+        deviceObj["direction"] = getDeviceDirectionString(device.direction);
+
+        String jsonResponse;
+        serializeJson(doc, jsonResponse);
+        res.sendJson(jsonResponse);
+        return;
       }
     }
-    if (found)
-      res.sendJson(json);
-    else {
-      res.status(404).send("Device not found");
-      Serial.println("[DEBUG] GET /api/device/" + deviceId + " - not found");
-    }
+
+    res.status(404).send("Device not found");
+    Serial.println("[DEBUG] GET /api/device/" + deviceId + " - not found");
   });
 
   // POST /api/device - Add a new device
   app.post("/api/device", [](Request &req, Response &res) {
-    String body = req.body;
-    Serial.println("[DEBUG] POST /api/device received body: " + body);
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, req.body);
     
-    int idStart = body.indexOf("\"id\":\"") + 6;
-    int idEnd   = body.indexOf("\"", idStart);
-    int typeStart = body.indexOf("\"type\":\"") + 8;
-    int typeEnd   = body.indexOf("\"", typeStart);
-    
-    if (idStart < 6 || typeStart < 8) {
-      res.status(400).send("Invalid JSON format");
-      Serial.println("[DEBUG] POST /api/device - Invalid JSON format");
+    if (error) {
+      res.status(400).send("Invalid JSON");
+      Serial.println("[DEBUG] POST /api/device - JSON parse error: " + String(error.c_str()));
       return;
     }
-    
-    Device d;
-    d.id    = body.substring(idStart, idEnd);
-    d.type  = body.substring(typeStart, typeEnd);
-    d.state = "unknown";  // Default state
 
-    // Check for "pins" array first, else fallback to "pin"
-    int pinsIndex = body.indexOf("\"pins\":");
-    if (pinsIndex != -1) {
-      int bracketStart = body.indexOf('[', pinsIndex);
-      int bracketEnd   = body.indexOf(']', bracketStart);
-      if (bracketStart != -1 && bracketEnd != -1) {
-        String pinsSubstr = body.substring(bracketStart + 1, bracketEnd);
-        d.pins = parsePins(pinsSubstr);
-      }
-    } else {
-      int pinStart = body.indexOf("\"pin\":") + 6;
-      int pinEnd   = body.indexOf("}", pinStart);
-      if (pinStart >= 6 && pinEnd != -1) {
-        int pin = body.substring(pinStart, pinEnd).toInt();
-        d.pins.push_back(pin);
+    Device d;
+    d.id = doc["id"].as<String>();
+    d.type = doc["type"].as<String>();
+    d.state = doc.containsKey("state") ? doc["state"].as<String>() : "unknown";
+
+    // Parse pins
+    if (doc.containsKey("pins")) {
+      JsonArray pinsJson = doc["pins"].as<JsonArray>();
+      for (JsonVariant pinVar : pinsJson) {
+        d.pins.push_back(pinVar.as<int>());
       }
     }
-    
-    // Optionally parse interfaceType
-    int intfIndex = body.indexOf("\"interfaceType\":\"");
-    if (intfIndex != -1) {
-      int intfStart = intfIndex + strlen("\"interfaceType\":\"");
-      int intfEnd   = body.indexOf("\"", intfStart);
-      String interfaceStr = body.substring(intfStart, intfEnd);
-      d.interface = parseInterfaceType(interfaceStr);
-    } else {
-      d.interface = DIGITAL_IF; // Default
-    }
-    
-    // Optionally parse direction
-    int dirIndex = body.indexOf("\"direction\":\"");
-    if (dirIndex != -1) {
-      int dirStart = dirIndex + strlen("\"direction\":\"");
-      int dirEnd   = body.indexOf("\"", dirStart);
-      String directionStr = body.substring(dirStart, dirEnd);
-      d.direction = parseDeviceDirection(directionStr);
-    } else {
-      d.direction = UNKNOWN_DIRECTION;
-    }
-    
+
+    // Parse interface type
+    d.interface = doc.containsKey("interfaceType") 
+      ? parseInterfaceType(doc["interfaceType"].as<String>()) 
+      : DIGITAL_IF;
+
+    // Parse device direction
+    d.direction = doc.containsKey("direction")
+      ? parseDeviceDirection(doc["direction"].as<String>())
+      : UNKNOWN_DIRECTION;
+
     devices.push_back(d);
     
-    // Debug: Print the device details as JSON for verification
-    String debugJson = "{";
-    debugJson += "\"id\":\"" + d.id + "\",";
-    debugJson += "\"type\":\"" + d.type + "\",";
-    debugJson += "\"state\":\"" + d.state + "\",";
-    debugJson += "\"pins\":[";
-    for (size_t i = 0; i < d.pins.size(); i++) {
-      debugJson += String(d.pins[i]);
-      if (i < d.pins.size() - 1)
-        debugJson += ",";
+    // Debug output
+    JsonDocument debugDoc;
+    JsonObject debugObj = debugDoc.to<JsonObject>();
+    debugObj["id"] = d.id;
+    debugObj["type"] = d.type;
+    debugObj["state"] = d.state;
+    
+    JsonArray debugPinsArray = debugObj["pins"].to<JsonArray>();
+    for (int pin : d.pins) {
+      debugPinsArray.add(pin);
     }
-    debugJson += "],";
-    String interfaceStr;
-    switch (d.interface) {
-      case DIGITAL_IF: interfaceStr = "digital"; break;
-      case ANALOG_IF:  interfaceStr = "analog"; break;
-      case PWM_IF:     interfaceStr = "pwm"; break;
-      case I2C_IF:     interfaceStr = "i2c"; break;
-      case SPI_IF:     interfaceStr = "spi"; break;
-      default:         interfaceStr = "unknown";
-    }
-    debugJson += "\"interfaceType\":\"" + interfaceStr + "\",";
-    String dirStr;
-    switch (d.direction) {
-      case INPUT_DEVICE:      dirStr = "input"; break;
-      case OUTPUT_DEVICE:     dirStr = "output"; break;
-      case BIDIRECTIONAL:     dirStr = "bidirectional"; break;
-      default:                dirStr = "unknown";
-    }
-    debugJson += "\"direction\":\"" + dirStr + "\"";
-    debugJson += "}";
+    
+    debugObj["interfaceType"] = getInterfaceTypeString(d.interface);
+    debugObj["direction"] = getDeviceDirectionString(d.direction);
+
+    String debugJson;
+    serializeJson(debugDoc, debugJson);
     Serial.println("[DEBUG] Adding Device: " + debugJson);
     
-    // Save updated devices list to flash
-    if (saveDevicesToFlash())
+    // Save to flash
+    if (saveDevicesToFlash()) {
       res.send("Device added");
-    else
+    } else {
       res.status(500).send("Failed to save device");
+    }
   });
 
   // PUT /api/device/:id - Update device state or other attributes
   app.put("/api/device/:id", [](Request &req, Response &res) {
     String deviceId = req.getParam("id");
-    String newState = req.body; // Assume the body is the new state as plain text
+    String newState = req.body;
     Serial.println("[DEBUG] PUT /api/device/" + deviceId + " with new state: " + newState);
     
     bool found = false;
@@ -264,14 +204,14 @@ void registerDeviceRoutes(ESPExpress &app) {
     String deviceId = req.getParam("id");
     Serial.println("[DEBUG] PUT /api/device/" + deviceId + "/pins, body: " + req.body);
 
-    // Parse the request body expecting JSON like: {"pins": [1,2,3]}
-    DynamicJsonDocument doc(256);
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, req.body);
     if (error) {
       res.status(400).send("Invalid JSON");
       Serial.println("[DEBUG] PUT /api/device/" + deviceId + "/pins - JSON parse error: " + String(error.c_str()));
       return;
     }
+
     JsonArray pins = doc["pins"].as<JsonArray>();
     if (pins.isNull()) {
       res.status(400).send("Missing pins array");
@@ -307,22 +247,18 @@ void registerDeviceRoutes(ESPExpress &app) {
   app.del("/api/device/:id", [](Request &req, Response &res) {
     String deviceId = req.getParam("id");
     Serial.println("[DEBUG] DELETE /api/device/" + deviceId);
-    bool found = false;
     
-    // Find and remove the device with matching id
-    for (auto it = devices.begin(); it != devices.end(); ++it) {
-      if (it->id == deviceId) {
-        devices.erase(it);
-        found = true;
-        break;
-      }
-    }
+    auto it = std::find_if(devices.begin(), devices.end(), 
+      [&deviceId](const Device& d) { return d.id == deviceId; });
     
-    if (found) {
+    if (it != devices.end()) {
+      devices.erase(it);
+      
       if (saveDevicesToFlash())
         res.send("Device deleted");
       else
         res.status(500).send("Device deleted but failed to save changes");
+      
       Serial.println("[DEBUG] Device " + deviceId + " deleted");
     } else {
       res.status(404).send("Device not found");
@@ -331,53 +267,32 @@ void registerDeviceRoutes(ESPExpress &app) {
   });
 }
 
-// Persistence functions using SPIFFS and ArduinoJson
-
 bool saveDevicesToFlash() {
   Serial.println("[DEBUG] Saving devices to flash...");
+  
   File file = SPIFFS.open(DEVICES_FILE, "w");
   if (!file) {
     Serial.println("[ERROR] Unable to open file for writing: " + String(DEVICES_FILE));
     return false;
   }
   
-  // Estimate capacity (adjust if needed)
-  const size_t capacity = JSON_ARRAY_SIZE(devices.size()) + devices.size() * JSON_OBJECT_SIZE(6) + 1024;
-  DynamicJsonDocument doc(capacity);
+  JsonDocument doc;
   JsonArray arr = doc.to<JsonArray>();
   
-  for (size_t i = 0; i < devices.size(); i++) {
-    JsonObject obj = arr.createNestedObject();
-    obj["id"] = devices[i].id;
-    obj["type"] = devices[i].type;
-    obj["state"] = devices[i].state;
+  for (const auto& device : devices) {
+    JsonObject obj = arr.add<JsonObject>();
     
-    // Add pins as an array
-    JsonArray pins = obj.createNestedArray("pins");
-    for (size_t j = 0; j < devices[i].pins.size(); j++) {
-      pins.add(devices[i].pins[j]);
+    obj["id"] = device.id;
+    obj["type"] = device.type;
+    obj["state"] = device.state;
+    
+    JsonArray pins = obj["pins"].to<JsonArray>();
+    for (int pin : device.pins) {
+      pins.add(pin);
     }
     
-    // Convert interface and direction enums to strings
-    String interfaceStr;
-    switch (devices[i].interface) {
-      case DIGITAL_IF: interfaceStr = "digital"; break;
-      case ANALOG_IF:  interfaceStr = "analog"; break;
-      case PWM_IF:     interfaceStr = "pwm"; break;
-      case I2C_IF:     interfaceStr = "i2c"; break;
-      case SPI_IF:     interfaceStr = "spi"; break;
-      default:         interfaceStr = "unknown";
-    }
-    obj["interfaceType"] = interfaceStr;
-    
-    String dirStr;
-    switch (devices[i].direction) {
-      case INPUT_DEVICE:      dirStr = "input"; break;
-      case OUTPUT_DEVICE:     dirStr = "output"; break;
-      case BIDIRECTIONAL:     dirStr = "bidirectional"; break;
-      default:                dirStr = "unknown";
-    }
-    obj["direction"] = dirStr;
+    obj["interfaceType"] = getInterfaceTypeString(device.interface);
+    obj["direction"] = getDeviceDirectionString(device.direction);
   }
   
   if (serializeJson(doc, file) == 0) {
@@ -393,6 +308,7 @@ bool saveDevicesToFlash() {
 
 bool loadDevicesFromFlash() {
   Serial.println("[DEBUG] Loading devices from flash...");
+  
   if (!SPIFFS.exists(DEVICES_FILE)) {
     Serial.println("[INFO] Devices file not found: " + String(DEVICES_FILE));
     return false;
@@ -404,13 +320,10 @@ bool loadDevicesFromFlash() {
     return false;
   }
   
-  String content = file.readString();
-  Serial.println("[DEBUG] Devices file content: " + content);
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, file);
   file.close();
   
-  const size_t capacity = JSON_ARRAY_SIZE(10) + 10 * JSON_OBJECT_SIZE(6) + 1024;
-  DynamicJsonDocument doc(capacity);
-  DeserializationError error = deserializeJson(doc, content);
   if (error) {
     Serial.println("[ERROR] Failed to parse JSON: " + String(error.c_str()));
     return false;
@@ -430,11 +343,8 @@ bool loadDevicesFromFlash() {
       d.pins.push_back(v.as<int>());
     }
     
-    String interfaceStr = obj["interfaceType"].as<String>();
-    d.interface = parseInterfaceType(interfaceStr);
-    
-    String directionStr = obj["direction"].as<String>();
-    d.direction = parseDeviceDirection(directionStr);
+    d.interface = parseInterfaceType(obj["interfaceType"].as<String>());
+    d.direction = parseDeviceDirection(obj["direction"].as<String>());
     
     devices.push_back(d);
   }
