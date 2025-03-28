@@ -77,13 +77,13 @@ export function DevicePinsEditor({ device, onUpdatePins }: DevicePinsEditorProps
                 {pins.length > 0 ? (
                   pins.map((pin) => (
                     <Badge key={pin} variant="secondary" className="flex items-center gap-1 px-2 py-1">
-                      {pin}
+                      <span>{pin}</span>
                       <button
                         onClick={() => handleRemovePin(pin)}
-                        className="ml-1 text-muted-foreground hover:text-foreground"
+                        className="ml-1 flex items-center justify-center h-4 w-4 rounded-full bg-muted-foreground/20 hover:bg-muted-foreground/40"
                         aria-label={`Remove pin ${pin}`}
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-2.5 w-2.5" />
                       </button>
                     </Badge>
                   ))
@@ -110,11 +110,10 @@ export function DevicePinsEditor({ device, onUpdatePins }: DevicePinsEditorProps
               <Button
                 onClick={handleAddPin}
                 disabled={!newPin || isNaN(Number.parseInt(newPin, 10)) || pins.includes(Number.parseInt(newPin, 10))}
-                size="sm"
-                className="mb-0.5"
+                size="icon"
+                className="h-10 w-10 flex items-center justify-center"
               >
-                <Plus className="h-4 w-4 mr-1" />
-                Add
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -125,6 +124,7 @@ export function DevicePinsEditor({ device, onUpdatePins }: DevicePinsEditorProps
         <Button
           onClick={handleSavePins}
           disabled={isUpdating || pins.length === 0 || JSON.stringify(pins) === JSON.stringify(device.pins)}
+          className="flex items-center"
         >
           {isUpdating ? (
             <>
@@ -132,7 +132,9 @@ export function DevicePinsEditor({ device, onUpdatePins }: DevicePinsEditorProps
               Updating...
             </>
           ) : (
-            "Save Changes"
+            <>
+              <span className="mr-2">Save Changes</span>
+            </>
           )}
         </Button>
       </div>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { DeviceType } from "@/types/device-types"
-import { Maximize2, Cpu, Trash } from "lucide-react"
+import { Maximize2, Cpu, Trash, Settings } from "lucide-react"
 import { DeviceControls } from "@/components/devices/device-controls"
 import { DeviceIcon } from "@/components/devices/device-icon"
 import { DeviceDetailsDialog } from "@/components/devices/device-details-dialog"
@@ -84,10 +84,10 @@ export function DeviceCard({ device, onUpdateState, onUpdatePins, onDelete, ipAd
           className,
         )}
       >
-        <CardHeader className="pb-2 flex-shrink-0">
+        <CardHeader className="pb-2 flex-shrink-0 px-4 pt-4">
           <div className="flex justify-between items-start">
             <div className="flex items-center space-x-2">
-              <div className="p-1.5 sm:p-2 rounded-full bg-primary/10">
+              <div className="p-1.5 sm:p-2 rounded-full bg-primary/10 flex items-center justify-center">
                 <DeviceIcon type={device.type} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <div>
@@ -125,7 +125,7 @@ export function DeviceCard({ device, onUpdateState, onUpdatePins, onDelete, ipAd
         </CardHeader>
 
         <CardContent className="flex-1 overflow-hidden p-0">
-          <ScrollArea className="h-full px-4 sm:px-6">
+          <ScrollArea className="h-full px-4">
             <div className="py-2">
               <DeviceControls
                 device={device}
@@ -137,33 +137,50 @@ export function DeviceCard({ device, onUpdateState, onUpdatePins, onDelete, ipAd
           </ScrollArea>
         </CardContent>
 
-        <CardFooter className="flex justify-between pt-2 mt-auto flex-shrink-0 border-t bg-muted/30">
-          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm text-destructive">
-                <Trash className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="hidden xs:inline">Delete</span>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will permanently delete the device "{device.id}" from your ESP32. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+        <CardFooter className="flex justify-between items-center pt-2 mt-auto flex-shrink-0 border-t bg-muted/30 px-4 py-2">
+          <div className="flex items-center space-x-2">
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                  <Trash className="h-4 w-4" />
+                  <span className="sr-only">Delete</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete the device "{device.id}" from your ESP32. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-          <Button variant="outline" size="sm" className="text-xs sm:text-sm" onClick={() => setShowDetails(true)}>
-            <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            <span className="hidden xs:inline">Details</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground"
+              onClick={() => setShowDetails(true)}
+            >
+              <Settings className="h-4 w-4" />
+              <span className="sr-only">Settings</span>
+            </Button>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 flex items-center justify-center"
+            onClick={() => setShowDetails(true)}
+          >
+            <Maximize2 className="h-4 w-4 mr-2" />
+            Details
           </Button>
         </CardFooter>
       </Card>

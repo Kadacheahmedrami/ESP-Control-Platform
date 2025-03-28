@@ -96,10 +96,10 @@ export function DeviceDetailsDialog({
           </div>
         </Tabs>
 
-        <DialogFooter className="mt-4 border-t pt-4">
+        <DialogFooter className="mt-4 border-t pt-4 flex justify-between items-center">
           <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm">
+              <Button variant="destructive" size="sm" className="flex items-center">
                 <Trash className="h-4 w-4 mr-2" />
                 Delete Device
               </Button>
@@ -119,6 +119,10 @@ export function DeviceDetailsDialog({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
