@@ -56,8 +56,6 @@ export function Sidebar({
   // Use the provided mobileOpen value if available, otherwise use the internal state
   const effectiveMobileOpen = setMobileOpen ? mobileOpen : internalMobileOpen
 
-  const [mobileOpenLocal, setMobileOpenLocal] = useState(false)
-
   const handleCategoryClick = (category: string) => {
     onCategorySelect(activeCategory === category ? null : category)
   }
@@ -66,7 +64,7 @@ export function Sidebar({
   useEffect(() => {
     const handleNavbarToggle = () => {
       if (window.innerWidth < 768) {
-        setMobileOpenLocal((prev) => !prev)
+        handleMobileOpenChange(!effectiveMobileOpen)
       }
     }
 
@@ -76,7 +74,7 @@ export function Sidebar({
     return () => {
       document.removeEventListener("toggle-mobile-sidebar", handleNavbarToggle)
     }
-  }, [])
+  }, [effectiveMobileOpen, handleMobileOpenChange])
 
   // Sidebar for desktop
   const DesktopSidebar = (
@@ -125,14 +123,16 @@ export function Sidebar({
 
           <TabsContent value="websocket" className="flex-1 p-0">
             {open ? (
-              <WebSocketLog
-                messages={wsMessages}
-                connected={wsConnected}
-                enabled={wsEnabled}
-                onSendMessage={onSendMessage}
-                onToggle={onToggleWebSocket}
-                compact={true}
-              />
+              <div className="h-full flex flex-col">
+                <WebSocketLog
+                  messages={wsMessages}
+                  connected={wsConnected}
+                  enabled={wsEnabled}
+                  onSendMessage={onSendMessage}
+                  onToggle={onToggleWebSocket}
+                  compact={true}
+                />
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div

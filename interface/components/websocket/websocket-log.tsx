@@ -3,12 +3,11 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Wifi, WifiOff, Send, Power } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Send, Wifi, WifiOff, Power } from "lucide-react"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 
@@ -77,33 +76,32 @@ export function WebSocketLog({
           </div>
         </div>
 
-        <ScrollArea className="flex-1" ref={scrollAreaRef}>
-          <div className="p-2 space-y-2">
-            {messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-4 text-sm">
-                {!enabled ? "WebSocket is disabled" : connected ? "No messages yet" : "Attempting to connect..."}
+        {/* Keep your approach with overflow-y-scroll and h-[78vh] */}
+        <div className="p-2 overflow-y-scroll h-[78vh] space-y-2" ref={scrollAreaRef}>
+          {messages.length === 0 ? (
+            <div className="text-center text-muted-foreground py-4 text-sm">
+              {!enabled ? "WebSocket is disabled" : connected ? "No messages yet" : "Attempting to connect..."}
+            </div>
+          ) : (
+            messages.map((message, index) => (
+              <div
+                key={index}
+                className={`text-sm border-l-2 pl-2 py-1 ${
+                  message.includes("error") || message.includes("failed")
+                    ? "border-destructive text-destructive"
+                    : message.includes("established") || message.includes("Connected")
+                      ? "border-green-500"
+                      : "border-primary"
+                }`}
+              >
+                <div className="text-xs text-muted-foreground">{new Date().toLocaleTimeString()}</div>
+                <div className="break-all">{message}</div>
               </div>
-            ) : (
-              messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`text-sm border-l-2 pl-2 py-1 ${
-                    message.includes("error") || message.includes("failed")
-                      ? "border-destructive text-destructive"
-                      : message.includes("established") || message.includes("Connected")
-                        ? "border-green-500"
-                        : "border-primary"
-                  }`}
-                >
-                  <div className="text-xs text-muted-foreground">{new Date().toLocaleTimeString()}</div>
-                  <div className="break-all">{message}</div>
-                </div>
-              ))
-            )}
-          </div>
-        </ScrollArea>
+            ))
+          )}
+        </div>
 
-        <div className="p-2 border-t">
+        <div className="p-2 border-t mt-auto">
           <div className="flex space-x-2">
             <Input
               value={inputMessage}
@@ -133,17 +131,17 @@ export function WebSocketLog({
               {!enabled ? (
                 <Badge variant="outline" className="flex items-center gap-1">
                   <Power className="h-3 w-3" />
-                  Disabled
+                  <span className="hidden xs:inline">Disabled</span>
                 </Badge>
               ) : connected ? (
                 <Badge variant="default" className="flex items-center gap-1">
                   <Wifi className="h-3 w-3" />
-                  Connected
+                  <span className="hidden xs:inline">Connected</span>
                 </Badge>
               ) : (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   <WifiOff className="h-3 w-3" />
-                  Connecting...
+                  <span className="hidden xs:inline">Connecting...</span>
                 </Badge>
               )}
             </Label>
@@ -151,7 +149,8 @@ export function WebSocketLog({
         </div>
       </CardHeader>
       <CardContent className="pb-2">
-        <ScrollArea className="h-[300px] rounded-md border p-4" ref={scrollAreaRef}>
+        {/* Apply the same approach to the full view */}
+        <div className="h-[300px] rounded-md border p-4 overflow-y-scroll" ref={scrollAreaRef}>
           {messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               {!enabled ? "WebSocket is disabled" : connected ? "No messages yet" : "Attempting to connect..."}
@@ -175,7 +174,7 @@ export function WebSocketLog({
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </CardContent>
       <CardFooter>
         <div className="flex w-full space-x-2">

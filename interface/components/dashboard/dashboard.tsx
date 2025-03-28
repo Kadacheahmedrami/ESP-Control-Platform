@@ -7,12 +7,11 @@ import { Sidebar } from "@/components/layout/sidebar"
 import { useDevices } from "@/hooks/use-devices"
 import { useWebSocket } from "@/hooks/use-websocket"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { Loader2, Cpu } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { DeviceType } from "@/types/device-types"
 import { motion } from "framer-motion"
 import { AddDeviceForm } from "@/components/devices/add-device-form"
-import { Cpu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface DashboardProps {
