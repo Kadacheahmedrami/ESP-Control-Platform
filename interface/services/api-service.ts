@@ -5,8 +5,7 @@ class ApiService {
   // IPv4 addresses (only numbers and dots) use http,
   // while domain names use https.
   private getProtocol(address: string): string {
-    const ipRegex =
-      /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+    const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
     return ipRegex.test(address) ? "http://" : "https://"
   }
 
@@ -77,7 +76,7 @@ class ApiService {
     }
   }
 
-  // Add a new device to the ESP32 - FIXED to match ESP32's expected format
+  // Add a new device to the ESP32 - Updated to match ESP32's expected format
   async addDevice(address: string, device: Omit<DeviceType, "id">, existingDevices: DeviceType[] = []): Promise<void> {
     try {
       // Generate a simple sequential name based on device type
@@ -91,28 +90,13 @@ class ApiService {
       const deviceId = `${deviceType}${nextNumber}`
 
       // Format JSON exactly as the ESP32 expects
-      let jsonBody: string
-
-      if (device.pins.length === 1) {
-        jsonBody = `{
-          "id":"${deviceId}",
-          "type":"${device.type}",
-          "pin":${device.pins[0]},
-          "interfaceType":"${device.interfaceType}",
-          "direction":"${device.direction}"
-        }`
-      } else {
-        jsonBody = `{
-          "id":"${deviceId}",
-          "type":"${device.type}",
-          "pins":[${device.pins.join(",")}],
-          "interfaceType":"${device.interfaceType}",
-          "direction":"${device.direction}"
-        }`
+      const deviceData = {
+        id: deviceId,
+        type: device.type,
+        pins: device.pins,
+        interfaceType: device.interfaceType,
+        direction: device.direction,
       }
-
-      // Remove whitespace for consistent format
-      jsonBody = jsonBody.replace(/\s+/g, "")
 
       const url = this.buildUrl(address, "/api/device")
       const response = await fetch(url, {
@@ -120,7 +104,7 @@ class ApiService {
         headers: {
           "Content-Type": "application/json",
         },
-        body: jsonBody,
+        body: JSON.stringify(deviceData),
         signal: AbortSignal.timeout(5000),
       })
 
@@ -153,6 +137,56 @@ class ApiService {
 
       if (!response.ok) {
         throw new Error(`Failed to update device: ${response.status} ${response.statusText}`)
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "AbortError") {
+          throw new Error("Request timed out. Please check your connection.")
+        }
+        throw err
+      }
+      throw new Error("An unknown error occurred")
+    }
+  }
+
+  // Update a device's pins
+  async updateDevicePins(address: string, deviceId: string, pins: number[]): Promise<void> {
+    try {
+      const url = this.buildUrl(address, `/api/device/${deviceId}/pins`)
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pins }),
+        signal: AbortSignal.timeout(5000),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to update device pins: ${response.status} ${response.statusText}`)
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "AbortError") {
+          throw new Error("Request timed out. Please check your connection.")
+        }
+        throw err
+      }
+      throw new Error("An unknown error occurred")
+    }
+  }
+
+  // Delete a device
+  async deleteDevice(address: string, deviceId: string): Promise<void> {
+    try {
+      const url = this.buildUrl(address, `/api/device/${deviceId}`)
+      const response = await fetch(url, {
+        method: "DELETE",
+        signal: AbortSignal.timeout(5000),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete device: ${response.status} ${response.statusText}`)
       }
     } catch (err) {
       if (err instanceof Error) {

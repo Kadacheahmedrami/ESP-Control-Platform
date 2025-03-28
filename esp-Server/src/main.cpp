@@ -12,16 +12,17 @@ const char* password = "78787878";
 // Create an instance of the ESPExpress server on port 80
 ESPExpress app(80);
 
+// Forward declarations for functions defined in your device routes file
+void initializeDevices();
+
 void setup() {
-
   Serial.begin(115200);
-
   delay(1000);
 
   // Connect to WiFi
   WiFi.begin(ssid, password);
   Serial.println("Connecting to WiFi...");
-  while(WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
@@ -30,10 +31,13 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   // Initialize SPIFFS
-  if(!SPIFFS.begin(true)) {
+  if (!SPIFFS.begin(true)) {
     Serial.println("SPIFFS mount failed");
     return;
   }
+
+  // Load previously saved devices from flash
+  initializeDevices();
 
   // Set up middleware, CORS, and static file serving
   app.use([](Request &req, Response &res, std::function<void()> next) {

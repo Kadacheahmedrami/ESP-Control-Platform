@@ -7,10 +7,12 @@ import { motion } from "framer-motion"
 interface DeviceGridProps {
   devices: DeviceType[]
   onUpdateDevice: (deviceId: string, state: string) => Promise<void>
+  onUpdatePins: (deviceId: string, pins: number[]) => Promise<void>
+  onDeleteDevice: (deviceId: string) => Promise<void>
   ipAddress: string
 }
 
-export function DeviceGrid({ devices, onUpdateDevice, ipAddress }: DeviceGridProps) {
+export function DeviceGrid({ devices, onUpdateDevice, onUpdatePins, onDeleteDevice, ipAddress }: DeviceGridProps) {
   // Animation variants for staggered animation
   const container = {
     hidden: { opacity: 0 },
@@ -36,7 +38,14 @@ export function DeviceGrid({ devices, onUpdateDevice, ipAddress }: DeviceGridPro
     >
       {devices.map((device) => (
         <motion.div key={device.id} variants={item} className="flex w-full">
-          <DeviceCard device={device} onUpdateState={onUpdateDevice} ipAddress={ipAddress} className="flex-1 w-full" />
+          <DeviceCard
+            device={device}
+            onUpdateState={onUpdateDevice}
+            onUpdatePins={onUpdatePins}
+            onDelete={onDeleteDevice}
+            ipAddress={ipAddress}
+            className="flex-1 w-full"
+          />
         </motion.div>
       ))}
     </motion.div>

@@ -26,7 +26,8 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const { toast } = useToast()
 
-  const { devices, loading, error, refreshDevices, addDevice, updateDeviceState } = useDevices(ipAddress)
+  const { devices, loading, error, refreshDevices, addDevice, updateDeviceState, updateDevicePins, deleteDevice } =
+    useDevices(ipAddress)
 
   const {
     connected: wsConnected,
@@ -198,7 +199,13 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
                   </Button>
                 )}
               </div>
-              <DeviceGrid devices={filteredDevices} onUpdateDevice={updateDeviceState} ipAddress={ipAddress} />
+              <DeviceGrid
+                devices={filteredDevices}
+                onUpdateDevice={updateDeviceState}
+                onUpdatePins={updateDevicePins}
+                onDeleteDevice={deleteDevice}
+                ipAddress={ipAddress}
+              />
             </motion.div>
           )}
 
