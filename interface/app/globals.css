@@ -96,6 +96,11 @@
   }
 }
 
+html,body{
+  height: 100svh;
+  overflow: hidden;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

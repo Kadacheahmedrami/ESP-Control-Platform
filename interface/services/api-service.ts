@@ -76,6 +76,41 @@ class ApiService {
     }
   }
 
+  // Get a specific device's state
+  async getDeviceState(address: string, deviceId: string): Promise<string> {
+    try {
+      const url = this.buildUrl(address, `/api/device/${deviceId}`)
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        signal: AbortSignal.timeout(5000),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch device state: ${response.status} ${response.statusText}`)
+      }
+
+      // The response might be plain text or JSON
+      const contentType = response.headers.get("content-type")
+      if (contentType && contentType.includes("application/json")) {
+        const data = await response.json()
+        return data.state || data.value || "unknown"
+      } else {
+        return await response.text()
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === "AbortError") {
+          throw new Error("Request timed out. Please check your connection.")
+        }
+        throw err
+      }
+      throw new Error("An unknown error occurred")
+    }
+  }
+
   // Add a new device to the ESP32 - Updated to match ESP32's expected format
   async addDevice(address: string, device: Omit<DeviceType, "id">, existingDevices: DeviceType[] = []): Promise<void> {
     try {

@@ -38,6 +38,7 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
     toggleWebSocket,
   } = useWebSocket(ipAddress)
 
+  // Update the WebSocket message processing to handle the new format
   // Process WebSocket messages for real-time updates
   useEffect(() => {
     if (lastMessage) {
@@ -45,20 +46,43 @@ export function Dashboard({ ipAddress, onDisconnect }: DashboardProps) {
         // Try to parse the message as JSON
         const data = JSON.parse(lastMessage)
 
-        // If it contains device updates, refresh the devices
-        if (data.type === "device_update") {
-          refreshDevices()
+        // Handle welcome message
+        if (data.type === "info") {
           toast({
-            title: "Device Updated",
-            description: `${data.deviceId} state changed to ${data.state}`,
+            title: "WebSocket Connected",
+            description: data.message || "Connected to ESP32 sensor hub",
           })
+          return
+        }
+
+        // Handle error message
+        if (data.error) {
+          toast({
+            title: "WebSocket Error",
+            description: data.error,
+            variant: "destructive",
+          })
+          return
+        }
+
+        // If it contains device updates with sensor data
+        if (data.deviceId && data.sensor && data.value) {
+          // Find the device and update its state if it exists
+          const device = devices.find((d) => d.id === data.deviceId)
+          if (device) {
+            updateDeviceState(data.deviceId, data.value)
+            toast({
+              title: "Sensor Update",
+              description: `${data.deviceId} ${data.sensor}: ${data.value}`,
+            })
+          }
         }
       } catch (e) {
         // If it's not JSON, just log it
         console.log("Received WebSocket message:", lastMessage)
       }
     }
-  }, [lastMessage, refreshDevices, toast])
+  }, [lastMessage, refreshDevices, toast, devices, updateDeviceState])
 
   // Group devices by type for filtering
   const deviceCategories = devices.reduce(

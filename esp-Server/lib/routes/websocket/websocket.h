@@ -1,9 +1,9 @@
-#ifndef WEBSOCKET_ROUTES_H
-#define WEBSOCKET_ROUTES_H
+#ifndef WEBSOCKET_H
+#define WEBSOCKET_H
 
 #include "ESPExpress.h"
 
-// Function to register WebSocket routes.
 void registerWebSocketRoutes(ESPExpress &app);
+void sendTemperatureUpdate(ESPExpress &app, float temperature);
 
-#endif // WEBSOCKET_ROUTES_H
+#endif // WEBSOCKET_H

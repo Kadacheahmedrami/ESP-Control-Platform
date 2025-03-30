@@ -57,5 +57,9 @@ void setup() {
 }
 
 void loop() {
-  app.wsLoop();
+  app.wsLoop();  // Process WebSocket events
+ 
+  // For demonstration: generate a random temperature value every 5 seconds.
+  // Replace this with your sensor reading if available.
+
 }
